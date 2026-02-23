@@ -65,12 +65,20 @@ public sealed class ArrayCollection<T> : IMyCollection<T>
         for (int i = 0; i < _count; i++)
         {
             T? current = _items[i];
-            if (current is null) continue;
-            if (comparer(current, key)) return current;
+            if (current is null)
+            {
+                continue;
+            }
+
+            if (comparer(current, key))
+            {
+                return current;
+            }
         }
 
         return default;
     }
+
 
     /// <inheritdoc/>
     public IMyCollection<T> Filter(Func<T, bool> predicate)
