@@ -19,6 +19,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="TestData/tasks.seed.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Kanban.Domain\Kanban.Domain.csproj" />
     <ProjectReference Include="..\..\src\Kanban.Application\Kanban.Application.csproj" />
     <ProjectReference Include="..\..\src\Kanban.Infrastructure\Kanban.Infrastructure.csproj" />
