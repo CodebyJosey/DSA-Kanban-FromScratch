@@ -34,7 +34,22 @@ public sealed class TaskService : ITaskService
     /// <inheritdoc/>
     public TaskItem Create(CreateTaskDto dto)
     {
-        throw new NotImplementedException();
+        ArgumentNullException.ThrowIfNull(dto);
+        ArgumentException.ThrowIfNullOrWhiteSpace(dto.Title);
+
+        TaskItem? task = new TaskItem
+        {
+            Title = dto.Title.Trim(),
+            Description = dto.Description,
+            Priority = dto.Priority,
+            Status = Domain.Enums.TaskStatus.ToDo,
+            CreatedAtUtc = _clock.UtcNow
+        };
+
+        _repo.Add(task);
+        _repo.SaveChanges();
+
+        return task;
     }
 
     /// <inheritdoc/>
@@ -44,7 +59,7 @@ public sealed class TaskService : ITaskService
     }
 
     /// <inheritdoc/>
-    public void MoveStatus(int id, TaskStatus status)
+    public void MoveStatus(int id, Domain.Enums.TaskStatus status)
     {
         throw new NotImplementedException();
     }
