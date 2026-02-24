@@ -42,7 +42,7 @@ public sealed class TaskService_EndToEndTests
     }
 
     /// <summary>
-    /// 
+    /// Moves the status of an task and checks if the change persists after reload.
     /// </summary>
     [Fact]
     public void MoveStatus_PersistsChange()
@@ -65,5 +65,67 @@ public sealed class TaskService_EndToEndTests
 
         Assert.NotNull(reloaded);
         Assert.Equal(Domain.Enums.TaskStatus.Done, reloaded!.Status);
+    }
+
+    /// <summary>
+    /// Updates an existing task and checks if the change perists after reload.
+    /// </summary>
+    [Fact]
+    public void Update_PersistsChange()
+    {
+        string? filePath = TestFileHelper.CreateEmptyTempTaskJsonPath();
+
+        JsonTaskRepository? repository = new JsonTaskRepository(filePath);
+        SystemClock? clock = new SystemClock();
+        TaskService? service = new TaskService(repository, clock);
+
+        TaskItem? created = service.Create(new CreateTaskDto
+        {
+            Title = "Old title",
+            Description = "Old description",
+            Priority = TaskPriority.Normal
+        });
+
+        service.Update(created.Id, new UpdateTaskDto
+        {
+            Title = "New title",
+            Description = "New description",
+            Priority = TaskPriority.High
+        });
+
+        JsonTaskRepository? newRepository = new JsonTaskRepository(filePath);
+        TaskItem? reloaded = newRepository.GetById(created.Id);
+
+        Assert.NotNull(reloaded);
+        Assert.Equal("New title", reloaded.Title);
+        Assert.Equal("New description", reloaded.Description);
+        Assert.Equal(TaskPriority.High, reloaded.Priority);
+    }
+
+    /// <summary>
+    /// Deletes an existing task and checks if it is gone after reload.
+    /// </summary>
+    [Fact]
+    public void Delete_RemovesAndPersists()
+    {
+        string? filePath = TestFileHelper.CreateEmptyTempTaskJsonPath();
+
+        JsonTaskRepository? repository = new JsonTaskRepository(filePath);
+        SystemClock? clock = new SystemClock();
+        TaskService? service = new TaskService(repository, clock);
+
+        TaskItem? created = service.Create(new CreateTaskDto
+        {
+            Title = "Task to delete"
+        });
+
+        bool deleted = service.Delete(created.Id);
+
+        Assert.True(deleted);
+
+        JsonTaskRepository? newRepository = new JsonTaskRepository(filePath);
+
+        Assert.Equal(0, newRepository.GetAll().Count);
+        Assert.Null(newRepository.GetById(created.Id));
     }
 }

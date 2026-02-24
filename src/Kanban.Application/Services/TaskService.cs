@@ -55,7 +55,29 @@ public sealed class TaskService : ITaskService
     /// <inheritdoc/>
     public void Update(int id, UpdateTaskDto dto)
     {
-        throw new NotImplementedException();
+        ArgumentNullException.ThrowIfNull(dto);
+
+        TaskItem? task = _repo.GetById(id);
+        if (task == null)
+        {
+            throw new InvalidOperationException($"Task with id {id} was not found.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(dto.Title))
+        {
+            task.Title = dto.Title.Trim();
+        }
+        if (dto.Description != null)
+        {
+            task.Description = dto.Description;
+        }
+        if (dto.Priority.HasValue)
+        {
+            task.Priority = dto.Priority.Value;
+        }
+
+        _repo.Update(task);
+        _repo.SaveChanges();
     }
 
     /// <inheritdoc/>
@@ -79,6 +101,13 @@ public sealed class TaskService : ITaskService
     /// <inheritdoc/>
     public bool Delete(int id)
     {
-        throw new NotImplementedException();
+        bool deleted = _repo.DeleteById(id);
+
+        if (deleted)
+        {
+            _repo.SaveChanges();
+        }
+
+        return deleted;
     }
 }
