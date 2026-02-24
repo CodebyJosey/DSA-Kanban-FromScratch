@@ -1,0 +1,18 @@
+[
+  {
+    "Id": 1,
+    "Title": "Seed task 1",
+    "Description": "Loaded from seed json",
+    "Status": 0,
+    "Priority": 1,
+    "CreatedAtUtc": "2026-02-24T12:00:00+00:00"
+  },
+  {
+    "Id": 2,
+    "Title": "Seed task 2",
+    "Description": null,
+    "Status": 1,
+    "Priority": 2,
+    "CreatedAtUtc": "2026-02-24T12:05:00+00:00"
+  }
+]
