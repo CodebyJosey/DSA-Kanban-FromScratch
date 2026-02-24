@@ -27,7 +27,7 @@ public interface ITaskService
     /// <summary>
     /// Moves a task to a new status.
     /// </summary>
-    void MoveStatus(int id, TaskStatus status);
+    void MoveStatus(int id, Domain.Enums.TaskStatus status);
 
     /// <summary>
     /// Deletes a task.
