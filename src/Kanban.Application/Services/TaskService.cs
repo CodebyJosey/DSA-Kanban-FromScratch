@@ -61,7 +61,19 @@ public sealed class TaskService : ITaskService
     /// <inheritdoc/>
     public void MoveStatus(int id, Domain.Enums.TaskStatus status)
     {
-        throw new NotImplementedException();
+        TaskItem? task = _repo.GetById(id);
+
+        if (task == null)
+        {
+            throw new InvalidOperationException($"Task with id {id} was not found.");
+        }
+
+        if (task.Status == status) return;
+
+        task.Status = status;
+
+        _repo.Update(task);
+        _repo.SaveChanges();
     }
 
     /// <inheritdoc/>
