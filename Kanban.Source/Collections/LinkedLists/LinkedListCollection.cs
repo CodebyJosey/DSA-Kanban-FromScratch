@@ -99,24 +99,13 @@ public sealed class LinkedListCollection<T> : IMyCollection<T>
     public IMyCollection<T> Filter(Func<T, bool> predicate)
     {
         if (predicate == null) return null!;
-        LinkedListNode<T>? filteredHead = default(LinkedListNode<T>);
-        LinkedListNode<T>? filteredTail = default(LinkedListNode<T>);
+        LinkedListCollection<T> result = new LinkedListCollection<T>();
         LinkedListNode<T>? current = _head;
         while (current != null)
         {
             if (predicate(current.Value))
             {
-                var newNode = new LinkedListNode<T>(current.Value);
-                if (filteredHead == null)
-                {
-                    filteredHead = newNode;
-                    filteredTail = newNode;
-                }
-                else
-                {
-                    filteredTail!.Next = newNode;
-                    filteredTail = newNode;
-                }
+                result.Add(current.Value);
             }
             current = current.Next;
         }
