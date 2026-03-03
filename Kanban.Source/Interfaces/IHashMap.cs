@@ -51,5 +51,5 @@ public interface IHashMap<TKey, TValue>
     /// Returns a custom iterator for this hashmap
     /// </summary>
     /// <returns></returns>
-    IMyIterator<KeyValuePair<TKey, TValue>> GetIterator();
+    IMyIterator<(TKey, TValue)> GetIterator();
 }
