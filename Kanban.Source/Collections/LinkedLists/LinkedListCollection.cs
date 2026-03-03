@@ -12,27 +12,22 @@ public sealed class LinkedListCollection<T> : IMyCollection<T>
 {
     private LinkedListNode<T>? _head;
     private LinkedListNode<T>? _tail;
+    private int _count;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="LinkedListCollection{T}"/> class.
+    /// Initializes an empty linked list collection.
     /// </summary>
-    /// <param name="head">Initial head node.</param>
-    /// <param name="tail">Initial tail node.</param>
-    internal LinkedListCollection(LinkedListNode<T>? head = null, LinkedListNode<T>? tail = null)
+    public LinkedListCollection()
     {
-        _head = head;
-        _tail = tail;
+        _count = 0;
+        Dirty = false;
     }
 
     /// <inheritdoc/>
-    public int Count => throw new NotImplementedException();
+    public int Count => _count;
 
     /// <inheritdoc/>
-    public bool Dirty
-    {
-        get => throw new NotImplementedException();
-        set => throw new NotImplementedException();
-    }
+    public bool Dirty { get; set; }
 
     /// <inheritdoc/>
     public void Add(T item)
@@ -48,6 +43,9 @@ public sealed class LinkedListCollection<T> : IMyCollection<T>
             _tail!.Next = newNode;
             _tail = newNode;
         }
+
+        _count++;
+        Dirty = true;
     }
 
     /// <inheritdoc/>
@@ -59,6 +57,8 @@ public sealed class LinkedListCollection<T> : IMyCollection<T>
         {
             _head = _head.Next;
             if (_head == null) _tail = null; // List is now empty
+            _count--;
+            Dirty = true;
             return true;
         }
 
@@ -69,6 +69,8 @@ public sealed class LinkedListCollection<T> : IMyCollection<T>
             {
                 current.Next = current.Next.Next;
                 if (current.Next == null) _tail = current; // Update tail if necessary
+                _count--;
+                Dirty = true;
                 return true;
             }
             current = current.Next;
@@ -97,28 +99,19 @@ public sealed class LinkedListCollection<T> : IMyCollection<T>
     public IMyCollection<T> Filter(Func<T, bool> predicate)
     {
         if (predicate == null) return null!;
-        var filteredHead = default(LinkedListNode<T>);
-        var filteredTail = default(LinkedListNode<T>);
+        var result = new LinkedListCollection<T>();
         var current = _head;
         while (current != null)
         {
             if (predicate(current.Value))
             {
-                var newNode = new LinkedListNode<T>(current.Value);
-                if (filteredHead == null)
-                {
-                    filteredHead = newNode;
-                    filteredTail = newNode;
-                }
-                else
-                {
-                    filteredTail!.Next = newNode;
-                    filteredTail = newNode;
-                }
+                result.Add(current.Value);
             }
             current = current.Next;
         }
-        return new LinkedListCollection<T>(filteredHead, filteredTail);
+
+        result.Dirty = false;
+        return result;
     }
 
     /// <inheritdoc/>
@@ -146,6 +139,8 @@ public sealed class LinkedListCollection<T> : IMyCollection<T>
                 current = current.Next;
             }
         } while (swapped);
+
+        Dirty = true;
     }
 
     /// <inheritdoc/>
@@ -183,6 +178,8 @@ public sealed class LinkedListCollection<T> : IMyCollection<T>
         {
             _head = _head.Next;
             if (_head == null) _tail = null; // List is now empty
+            _count--;
+            Dirty = true;
             return;
         }
 
@@ -197,6 +194,8 @@ public sealed class LinkedListCollection<T> : IMyCollection<T>
 
         current.Next = current.Next.Next;
         if (current.Next == null) _tail = current; // Update tail if necessary
+        _count--;
+        Dirty = true;
     }
 
     /// <summary>
