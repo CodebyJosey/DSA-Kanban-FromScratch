@@ -37,7 +37,7 @@ public sealed class LinkedListCollection<T> : IMyCollection<T>
     /// <inheritdoc/>
     public void Add(T item)
     {
-        var newNode = new LinkedListNode<T>(item);
+        LinkedListNode<T>? newNode = new LinkedListNode<T>(item);
         if (_head == null)
         {
             _head = newNode;
@@ -62,7 +62,7 @@ public sealed class LinkedListCollection<T> : IMyCollection<T>
             return true;
         }
 
-        var current = _head;
+        LinkedListNode<T>? current = _head;
         while (current != null && current.Next != null)
         {
             if (EqualityComparer<T>.Default.Equals(current.Next.Value, item))
@@ -80,7 +80,7 @@ public sealed class LinkedListCollection<T> : IMyCollection<T>
     /// <inheritdoc/>
     public T? FindBy<TKey>(TKey key, Func<T, TKey, bool> comparer)
     {
-        var current = _head;
+        LinkedListNode<T>? current = _head;
         while (current != null)
         {
             if (comparer(current.Value, key))
@@ -97,14 +97,14 @@ public sealed class LinkedListCollection<T> : IMyCollection<T>
     public IMyCollection<T> Filter(Func<T, bool> predicate)
     {
         if (predicate == null) return null!;
-        var filteredHead = default(LinkedListNode<T>);
-        var filteredTail = default(LinkedListNode<T>);
-        var current = _head;
+        LinkedListNode<T>? filteredHead = default(LinkedListNode<T>);
+        LinkedListNode<T>? filteredTail = default(LinkedListNode<T>);
+        LinkedListNode<T>? current = _head;
         while (current != null)
         {
             if (predicate(current.Value))
             {
-                var newNode = new LinkedListNode<T>(current.Value);
+                LinkedListNode<T>? newNode = new LinkedListNode<T>(current.Value);
                 if (filteredHead == null)
                 {
                     filteredHead = newNode;
@@ -132,13 +132,13 @@ public sealed class LinkedListCollection<T> : IMyCollection<T>
         do
         {
             swapped = false;
-            var current = _head;
+            LinkedListNode<T>? current = _head;
             while (current != null && current.Next != null)
             {
                 if (comparison(current.Value, current.Next.Value) > 0)
                 {
                     // Swap values
-                    var temp = current.Value;
+                    T? temp = current.Value;
                     current.Value = current.Next.Value;
                     current.Next.Value = temp;
                     swapped = true;
@@ -152,8 +152,8 @@ public sealed class LinkedListCollection<T> : IMyCollection<T>
     public TResult Reduce<TResult>(TResult initial, Func<TResult, T, TResult> accumulator)
     {
         if (accumulator == null) return initial;
-        var result = initial;
-        var current = _head;
+        TResult? result = initial;
+        LinkedListNode<T>? current = _head;
         while (current != null)
         {
             result = accumulator(result, current.Value);
@@ -186,7 +186,7 @@ public sealed class LinkedListCollection<T> : IMyCollection<T>
             return;
         }
 
-        var current = _head;
+        LinkedListNode<T>? current = _head;
         for (int i = 0; i < index - 1; i++)
         {
             if (current.Next == null) throw new ArgumentOutOfRangeException(nameof(index), "Index is out of range.");
@@ -210,7 +210,7 @@ public sealed class LinkedListCollection<T> : IMyCollection<T>
         value = default;
         if (index < 0) return false;
 
-        var current = _head;
+        LinkedListNode<T>? current = _head;
         for (int i = 0; i < index; i++)
         {
             if (current == null) return false;
@@ -230,7 +230,7 @@ public sealed class LinkedListCollection<T> : IMyCollection<T>
 
     private int IndexOf(T item)
     {
-        var current = _head;
+        LinkedListNode<T>? current = _head;
         int index = 0;
         while (current != null)
         {
