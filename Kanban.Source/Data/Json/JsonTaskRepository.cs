@@ -123,7 +123,8 @@ public sealed class JsonTaskRepository : ITaskRepository
                 Description = r.Description,
                 Status = r.Status,
                 Priority = r.Priority,
-                CreatedAtUtc = r.CreatedAtUtc
+                CreatedAtUtc = r.CreatedAtUtc,
+                AssignedToMemberId = r.AssignedToMemberId
             });
         }
 
@@ -166,7 +167,8 @@ public sealed class JsonTaskRepository : ITaskRepository
                 Description = task.Description,
                 Status = task.Status,
                 Priority = task.Priority,
-                CreatedAtUtc = task.CreatedAtUtc
+                CreatedAtUtc = task.CreatedAtUtc,
+                AssignedToMemberId = task.AssignedToMemberId
             };
 
             index++;
