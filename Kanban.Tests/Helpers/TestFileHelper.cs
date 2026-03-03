@@ -54,6 +54,19 @@ public static class TestFileHelper
         return Path.Combine(tempDir, "tasks.json");
     }
 
+    /// <summary>
+    /// Creates an empty temporary members.json file path.
+    /// </summary>
+    public static string CreateEmptyTempMemberJsonPath()
+    {
+        string? tempDir = CreateUniqueTempDirectory();
+        string path = Path.Combine(tempDir, "members.json");
+
+        File.WriteAllText(path, "[]");
+
+        return path;
+    }
+
     private static string FindRepoRoot(string startDirectory)
     {
         DirectoryInfo? current = new DirectoryInfo(startDirectory);

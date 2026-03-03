@@ -31,6 +31,12 @@ public sealed class TaskItem
     public Enums.TaskPriority Priority { get; set; }
 
     /// <summary>
+    /// Gets or sets the team member id this task is assigned to.
+    /// If <c>null</c>, the task is unassigned.
+    /// </summary>
+    public int? AssignedToMemberId { get; set; }
+
+    /// <summary>
     /// Creation time (UTC).
     /// </summary>
     public DateTimeOffset CreatedAtUtc { get; set; }
