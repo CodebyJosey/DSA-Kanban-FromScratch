@@ -2,6 +2,7 @@ using Kanban.Source.Classes.Dtos;
 using Kanban.Source.Classes.Entities;
 using Kanban.Source.Enums;
 using Kanban.Source.Interfaces;
+using Kanban.Source.UI.Views;
 using Spectre.Console;
 
 namespace Kanban.Source.UI.Menus;
@@ -38,6 +39,7 @@ public sealed class MainMenu
                         "Update task",
                         "Move task status",
                         "Delete task",
+                        "Board view",
                         "Exit"
                     }));
 
@@ -62,6 +64,10 @@ public sealed class MainMenu
 
                 case "Delete task":
                     DeleteTask();
+                    break;
+
+                case "Board view":
+                    KanbanBoardView.Show(_tasks.GetAll());
                     break;
 
                 case "Exit":
