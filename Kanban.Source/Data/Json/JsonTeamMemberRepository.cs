@@ -61,6 +61,12 @@ public sealed class JsonTeamMemberRepository : ITeamMemberRepository
     /// <inheritdoc />
     public void SaveAll(IMyCollection<TeamMember> members)
     {
+        string? directoryPath = Path.GetDirectoryName(_filePath);
+        if (!string.IsNullOrWhiteSpace(directoryPath))
+        {
+            Directory.CreateDirectory(directoryPath);
+        }
+
         // Serialize via array (no List<T>)
         TeamMemberRecord[] arr = new TeamMemberRecord[members.Count];
 

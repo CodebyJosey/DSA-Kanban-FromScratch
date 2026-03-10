@@ -50,4 +50,14 @@ public interface ITaskService
     /// Assigns or unassigns a task to a team member.
     /// </summary>
     void Assign(AssignTaskDto dto);
+
+    /// <summary>
+    /// Sets or clears a task dependency.
+    /// </summary>
+    void SetDependency(int taskId, int? dependsOnTaskId);
+
+    /// <summary>
+    /// Sets or clears a task dependency if the acting member has rights.
+    /// </summary>
+    void SetDependency(int taskId, int? dependsOnTaskId, int actingMemberId);
 }

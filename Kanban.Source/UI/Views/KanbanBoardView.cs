@@ -39,22 +39,25 @@ public static class KanbanBoardView
         IMyCollection<TaskItem> done =
             allTasks.Filter(t => t.Status == Enums.TaskStatus.Done);
 
-        Render(todo, inProgress, done);
+        Render(allTasks, todo, inProgress, done);
     }
 
     /// <summary>
     /// Renders the three Kanban columns.
     /// </summary>
+    /// <param name="allTasks">All tasks used for dependency flow rendering.</param>
     /// <param name="todo">Tasks in ToDo status.</param>
     /// <param name="inProgress">Tasks in InProgress status.</param>
     /// <param name="done">Tasks in Done status.</param>
     private static void Render(
+        IMyCollection<TaskItem> allTasks,
         IMyCollection<TaskItem> todo,
         IMyCollection<TaskItem> inProgress,
         IMyCollection<TaskItem> done)
     {
         AnsiConsole.Clear();
-        AnsiConsole.Write(new Rule("[yellow]Kanban Board[/]").RuleStyle("grey").LeftJustified());
+        AnsiConsole.Write(new Rule("[bold deepskyblue1]Kanban Board[/]").RuleStyle("grey").LeftJustified());
+        AnsiConsole.WriteLine($"[grey]Total:[/] [white]{allTasks.Count}[/]  [grey]ToDo:[/] [yellow]{todo.Count}[/]  [grey]InProgress:[/] [deepskyblue1]{inProgress.Count}[/]  [grey]Done:[/] [green]{done.Count}[/]");
         AnsiConsole.WriteLine();
 
         Table table = new Table()
@@ -66,12 +69,14 @@ public static class KanbanBoardView
         table.AddColumn(new TableColumn("[bold green]Done[/]").Centered());
 
         table.AddRow(
-            new Panel(new Markup(RenderColumn(todo))).BorderColor(Color.Yellow),
-            new Panel(new Markup(RenderColumn(inProgress))).BorderColor(Color.DeepSkyBlue1),
-            new Panel(new Markup(RenderColumn(done))).BorderColor(Color.Green)
+            new Panel(new Markup(RenderColumn(todo, allTasks))).Header("[yellow]ToDo[/]").BorderColor(Color.Yellow),
+            new Panel(new Markup(RenderColumn(inProgress, allTasks))).Header("[deepskyblue1]In Progress[/]").BorderColor(Color.DeepSkyBlue1),
+            new Panel(new Markup(RenderColumn(done, allTasks))).Header("[green]Done[/]").BorderColor(Color.Green)
         );
 
         AnsiConsole.Write(table);
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[grey]Legend:[/] [red][[LOCKED]][/], [green][[READY]][/], [orange3]Flow:[/] #task <- #dependency");
         AnsiConsole.MarkupLine("\n[grey]Press any key to continue...[/]");
         Console.ReadKey(true);
     }
@@ -81,10 +86,11 @@ public static class KanbanBoardView
     /// for rendering inside a board column.
     /// </summary>
     /// <param name="tasks">The tasks to render.</param>
+    /// <param name="allTasks">The full task set used to draw dependency flow chains.</param>
     /// <returns>
     /// A formatted markup string suitable for Spectre.Console.
     /// </returns>
-    private static string RenderColumn(IMyCollection<TaskItem> tasks)
+    private static string RenderColumn(IMyCollection<TaskItem> tasks, IMyCollection<TaskItem> allTasks)
     {
         if (tasks.Count == 0)
             return "[grey](empty)[/]";
@@ -97,14 +103,18 @@ public static class KanbanBoardView
                 string prioColor = GetPriorityColor(task.Priority);
 
                 string line =
-                    $"• [grey]#{task.Id}[/] " +
-                    $"[bold]{Markup.Escape(task.Title)}[/] " +
-                    $"([{prioColor}]{Markup.Escape(task.Priority.ToString())}[/])";
+                    $"[bold]#{task.Id}[/] {GetLockBadge(task)} {GetPriorityBadge(task.Priority)} " +
+                    $"[white]{Markup.Escape(task.Title)}[/]";
+
+                if (task.DependsOnTaskId.HasValue)
+                {
+                    line += $"\n[grey]Flow:[/] {BuildDependencyFlow(task, allTasks)}";
+                }
 
                 if (string.IsNullOrEmpty(acc))
                     return line;
 
-                return acc + "\n" + line;
+                return acc + "\n\n" + line;
             });
 
         return result;
@@ -124,5 +134,59 @@ public static class KanbanBoardView
             TaskPriority.High => "red",
             _ => "white"
         };
+    }
+
+    private static string GetLockBadge(TaskItem task)
+    {
+        return task.IsLocked ? "[red][[LOCKED]][/]" : "[green][[READY]][/]";
+    }
+
+    private static string GetPriorityBadge(TaskPriority priority)
+    {
+        string color = GetPriorityColor(priority);
+        return $"[{color}][[{Markup.Escape(priority.ToString().ToUpperInvariant())}]][/]";
+    }
+
+    private static string BuildDependencyFlow(TaskItem task, IMyCollection<TaskItem> allTasks)
+    {
+        string flow = $"[white]#{task.Id}[/]";
+        int? current = task.DependsOnTaskId;
+        int hops = 0;
+
+        while (current.HasValue && hops < 12)
+        {
+            TaskItem? dependency = FindTaskById(allTasks, current.Value);
+            if (dependency == null)
+            {
+                flow += $" [grey]<-[/] [red]#{current.Value}?[/]";
+                return flow;
+            }
+
+            flow += $" [grey]<-[/] [yellow]#{dependency.Id}[/]";
+            current = dependency.DependsOnTaskId;
+            hops++;
+        }
+
+        if (hops >= 12 && current.HasValue)
+        {
+            flow += " [grey]<- ...[/]";
+        }
+
+        return flow;
+    }
+
+    private static TaskItem? FindTaskById(IMyCollection<TaskItem> allTasks, int id)
+    {
+        IMyIterator<TaskItem> iterator = allTasks.GetIterator();
+        while (iterator.HasNext())
+        {
+            TaskItem task = iterator.Next();
+            if (task.Id == id)
+            {
+                return task;
+            }
+        }
+
+        return null;
     }
 }

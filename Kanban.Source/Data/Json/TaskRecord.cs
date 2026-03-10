@@ -38,6 +38,16 @@ public sealed class TaskRecord
     public int? AssignedToMemberId { get; set; }
 
     /// <summary>
+    /// Optional prerequisite task id.
+    /// </summary>
+    public int? DependsOnTaskId { get; set; }
+
+    /// <summary>
+    /// Indicates whether the task is currently locked.
+    /// </summary>
+    public bool IsLocked { get; set; }
+
+    /// <summary>
     /// The time (UTC) when the task record was created.
     /// </summary>
     public DateTimeOffset CreatedAtUtc { get; set; }

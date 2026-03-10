@@ -21,4 +21,9 @@ public sealed class CreateTaskDto
     /// Priority of the task.
     /// </summary>
     public TaskPriority Priority { get; init; } = TaskPriority.Normal;
+
+    /// <summary>
+    /// Optional prerequisite task id that must be done before this task can be started.
+    /// </summary>
+    public int? DependsOnTaskId { get; init; }
 }

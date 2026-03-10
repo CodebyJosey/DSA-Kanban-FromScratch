@@ -48,6 +48,7 @@ public sealed class MainMenu
                         "Add task",
                         "Update task",
                         "Move task status",
+                        "Manage task dependency",
                         "Delete task",
                         "Assign task",
                         "Add team member",
@@ -76,6 +77,10 @@ public sealed class MainMenu
 
                 case "Move task status":
                     MoveTaskStatus();
+                    break;
+
+                case "Manage task dependency":
+                    ManageTaskDependency();
                     break;
 
                 case "Delete task":
@@ -115,13 +120,14 @@ public sealed class MainMenu
 
         Table table = new Table()
             .Border(TableBorder.Rounded)
-            .Title("[deepskyblue1]Tasks[/]");
+            .Title("[bold deepskyblue1]Tasks[/]");
 
-        table.AddColumn("Id");
-        table.AddColumn("Title");
-        table.AddColumn("Status");
-        table.AddColumn("Priority");
-        table.AddColumn("Assigned");
+        table.AddColumn("[grey]Id[/]");
+        table.AddColumn("[grey]Title[/]");
+        table.AddColumn("[grey]Status[/]");
+        table.AddColumn("[grey]Priority[/]");
+        table.AddColumn("[grey]Flow[/]");
+        table.AddColumn("[grey]Assigned[/]");
 
         IMyIterator<TaskItem> iterator = tasks.GetIterator();
         while (iterator.HasNext())
@@ -130,13 +136,16 @@ public sealed class MainMenu
             table.AddRow(
                 t.Id.ToString(),
                 Markup.Escape(t.Title),
-                t.Status.ToString(),
-                t.Priority.ToString(),
+                FormatStatusBadge(t),
+                FormatPriorityBadge(t.Priority),
+                FormatDependencyFlow(t),
                 FormatAssigned(t)
             );
         }
 
         AnsiConsole.Write(table);
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[grey]Legend:[/] [red][[LOCKED]][/], [green][[READY]][/], [orange3]Flow:[/] #task <- #dependency");
     }
 
     private void AddTask()
@@ -152,11 +161,22 @@ public sealed class MainMenu
                 .Title("Priority:")
                 .AddChoices(new[] { TaskPriority.Low, TaskPriority.Normal, TaskPriority.High }));
 
+        int? dependsOnTaskId = null;
+        if (_tasks.GetAll().Count > 0)
+        {
+            bool addDependency = AnsiConsole.Confirm("Add dependency (lock this task until another task is done)?", defaultValue: false);
+            if (addDependency)
+            {
+                dependsOnTaskId = AskDependencyTaskId();
+            }
+        }
+
         _tasks.Create(new CreateTaskDto
         {
             Title = title,
             Description = description,
-            Priority = priority
+            Priority = priority,
+            DependsOnTaskId = dependsOnTaskId
         });
 
         AnsiConsole.MarkupLine("[green]Task created.[/]");
@@ -248,6 +268,47 @@ public sealed class MainMenu
         {
             bool deleted = _tasks.Delete(id, _activeMemberId);
             AnsiConsole.MarkupLine(deleted ? "[green]Task deleted.[/]" : "[yellow]Task not found.[/]");
+        }
+        catch (InvalidOperationException ex)
+        {
+            AnsiConsole.MarkupLine($"[red]{Markup.Escape(ex.Message)}[/]");
+        }
+
+        Pause();
+    }
+
+    private void ManageTaskDependency()
+    {
+        AnsiConsole.Clear();
+        AnsiConsole.MarkupLine("[deepskyblue1]Manage Task Dependency[/]");
+
+        if (_tasks.GetAll().Count == 0)
+        {
+            AnsiConsole.MarkupLine("[yellow]No tasks found.[/]");
+            Pause();
+            return;
+        }
+
+        int taskId = AnsiConsole.Ask<int>("Task Id:");
+
+        string action = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("Dependency action:")
+                .AddChoices(new[] { "Set dependency", "Clear dependency" }));
+
+        try
+        {
+            if (action == "Clear dependency")
+            {
+                _tasks.SetDependency(taskId, null, _activeMemberId);
+                AnsiConsole.MarkupLine("[green]Dependency cleared.[/]");
+                Pause();
+                return;
+            }
+
+            int dependencyTaskId = AskDependencyTaskId(taskId);
+            _tasks.SetDependency(taskId, dependencyTaskId, _activeMemberId);
+            AnsiConsole.MarkupLine($"[green]Dependency set:[/] [yellow]#{taskId}[/] [grey]->[/] [yellow]#{dependencyTaskId}[/]");
         }
         catch (InvalidOperationException ex)
         {
@@ -415,6 +476,121 @@ public sealed class MainMenu
             return $"[yellow]#{task.AssignedToMemberId.Value}[/]";
 
         return $"[yellow]#{m.Id}[/] {Markup.Escape(m.Name)}";
+    }
+
+    private string FormatStatusBadge(TaskItem task)
+    {
+        if (task.IsLocked)
+        {
+            return "[red][[LOCKED]][/]";
+        }
+
+        return task.Status switch
+        {
+            Enums.TaskStatus.ToDo => "[yellow][[TODO]][/]",
+            Enums.TaskStatus.InProgress => "[deepskyblue1][[IN-PROGRESS]][/]",
+            Enums.TaskStatus.Done => "[green][[DONE]][/]",
+            _ => $"[white]{Markup.Escape(task.Status.ToString().ToUpperInvariant())}[/]"
+        };
+    }
+
+    private static string FormatPriorityBadge(TaskPriority priority)
+    {
+        return priority switch
+        {
+            TaskPriority.Low => "[grey][[LOW]][/]",
+            TaskPriority.Normal => "[orange3][[NORMAL]][/]",
+            TaskPriority.High => "[red][[HIGH]][/]",
+            _ => $"[white]{Markup.Escape(priority.ToString().ToUpperInvariant())}[/]"
+        };
+    }
+
+    private string FormatDependencyFlow(TaskItem task)
+    {
+        if (!task.DependsOnTaskId.HasValue)
+        {
+            return "[grey]-[/]";
+        }
+
+        string flow = $"[white]#{task.Id}[/]";
+        int? current = task.DependsOnTaskId;
+        int hops = 0;
+
+        while (current.HasValue && hops < 12)
+        {
+            TaskItem? dependency = _tasks.GetAll().FindBy(current.Value, (candidate, id) => candidate.Id == id);
+            if (dependency == null)
+            {
+                flow += $" [grey]<-[/] [red]#{current.Value}?[/]";
+                break;
+            }
+
+            flow += $" [grey]<-[/] [yellow]#{dependency.Id}[/]";
+            current = dependency.DependsOnTaskId;
+            hops++;
+        }
+
+        if (hops >= 12 && current.HasValue)
+        {
+            flow += " [grey]<- ...[/]";
+        }
+
+        return flow;
+    }
+
+    private int AskDependencyTaskId()
+    {
+        return AskDependencyTaskId(excludeTaskId: null);
+    }
+
+    private int AskDependencyTaskId(int? excludeTaskId)
+    {
+        IMyCollection<TaskItem> allTasks = _tasks.GetAll();
+        int candidateCount = CountDependencyCandidates(allTasks, excludeTaskId);
+        if (candidateCount == 0)
+        {
+            throw new InvalidOperationException("No valid dependency tasks available.");
+        }
+
+        string[] choices = new string[candidateCount];
+
+        int index = 0;
+        IMyIterator<TaskItem> iterator = allTasks.GetIterator();
+        while (iterator.HasNext())
+        {
+            TaskItem task = iterator.Next();
+            if (excludeTaskId.HasValue && task.Id == excludeTaskId.Value)
+            {
+                continue;
+            }
+
+            choices[index++] = $"#{task.Id} - {task.Title}";
+        }
+
+        string selected = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("Select dependency task:")
+                .AddChoices(choices));
+
+        return ParseIdFromChoice(selected);
+    }
+
+    private static int CountDependencyCandidates(IMyCollection<TaskItem> tasks, int? excludeTaskId)
+    {
+        int count = 0;
+        IMyIterator<TaskItem> iterator = tasks.GetIterator();
+        while (iterator.HasNext())
+        {
+            TaskItem task = iterator.Next();
+            if (excludeTaskId.HasValue && task.Id == excludeTaskId.Value)
+            {
+                continue;
+            }
+
+            count++;
+        }
+
+        return count;
     }
 
     /// <summary>
