@@ -53,7 +53,7 @@ public sealed class LinkedListCollection<T> : IMyCollection<T>
     {
         if (_head == null) return false;
 
-        if (EqualityComparer<T>.Default.Equals(_head.Value, item))
+        if (object.Equals(_head.Value, item))
         {
             _head = _head.Next;
             if (_head == null) _tail = null; // List is now empty
@@ -65,7 +65,7 @@ public sealed class LinkedListCollection<T> : IMyCollection<T>
         LinkedListNode<T>? current = _head;
         while (current != null && current.Next != null)
         {
-            if (EqualityComparer<T>.Default.Equals(current.Next.Value, item))
+            if (object.Equals(current.Next.Value, item))
             {
                 current.Next = current.Next.Next;
                 if (current.Next == null) _tail = current; // Update tail if necessary
@@ -233,7 +233,7 @@ public sealed class LinkedListCollection<T> : IMyCollection<T>
         int index = 0;
         while (current != null)
         {
-            if (EqualityComparer<T>.Default.Equals(current.Value, item))
+            if (object.Equals(current.Value, item))
             {
                 return index;
             }
