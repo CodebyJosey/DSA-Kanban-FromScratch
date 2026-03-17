@@ -127,4 +127,153 @@ public sealed class TaskService_EndToEndTests
         Assert.Equal(0, newRepository.GetAll().Count);
         Assert.Null(newRepository.GetById(created.Id));
     }
+
+    [Fact]
+    public void CreateTask_WithDependency_StartsLockedWhenPrerequisiteNotDone()
+    {
+        string filePath = TestFileHelper.CreateEmptyTempTaskJsonPath();
+
+        JsonTaskRepository repository = new JsonTaskRepository(filePath);
+        SystemClock clock = new SystemClock();
+        TaskService service = new TaskService(repository, clock);
+
+        TaskItem prerequisite = service.Create(new CreateTaskDto
+        {
+            Title = "Task A"
+        });
+
+        TaskItem dependent = service.Create(new CreateTaskDto
+        {
+            Title = "Task B",
+            DependsOnTaskId = prerequisite.Id
+        });
+
+        JsonTaskRepository reloadedRepository = new JsonTaskRepository(filePath);
+        TaskItem? reloadedDependent = reloadedRepository.GetById(dependent.Id);
+
+        Assert.NotNull(reloadedDependent);
+        Assert.True(reloadedDependent!.IsLocked);
+        Assert.Equal(prerequisite.Id, reloadedDependent.DependsOnTaskId);
+    }
+
+    [Fact]
+    public void MoveStatus_WhenTaskIsLocked_Throws()
+    {
+        string filePath = TestFileHelper.CreateEmptyTempTaskJsonPath();
+
+        JsonTaskRepository repository = new JsonTaskRepository(filePath);
+        SystemClock clock = new SystemClock();
+        TaskService service = new TaskService(repository, clock);
+
+        TaskItem prerequisite = service.Create(new CreateTaskDto
+        {
+            Title = "Task A"
+        });
+
+        TaskItem dependent = service.Create(new CreateTaskDto
+        {
+            Title = "Task B",
+            DependsOnTaskId = prerequisite.Id
+        });
+
+        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
+            () => service.MoveStatus(dependent.Id, Source.Enums.TaskStatus.InProgress));
+
+        Assert.Contains("locked", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void MoveStatus_WhenPrerequisiteCompletes_UnlocksDependent()
+    {
+        string filePath = TestFileHelper.CreateEmptyTempTaskJsonPath();
+
+        JsonTaskRepository repository = new JsonTaskRepository(filePath);
+        SystemClock clock = new SystemClock();
+        TaskService service = new TaskService(repository, clock);
+
+        TaskItem prerequisite = service.Create(new CreateTaskDto
+        {
+            Title = "Task A"
+        });
+
+        TaskItem dependent = service.Create(new CreateTaskDto
+        {
+            Title = "Task B",
+            DependsOnTaskId = prerequisite.Id
+        });
+
+        service.MoveStatus(prerequisite.Id, Source.Enums.TaskStatus.Done);
+
+        JsonTaskRepository reloadedRepository = new JsonTaskRepository(filePath);
+        TaskItem? reloadedDependent = reloadedRepository.GetById(dependent.Id);
+
+        Assert.NotNull(reloadedDependent);
+        Assert.False(reloadedDependent!.IsLocked);
+    }
+
+    [Fact]
+    public void SetDependency_AddsDependency_AndLocksTask()
+    {
+        string filePath = TestFileHelper.CreateEmptyTempTaskJsonPath();
+
+        JsonTaskRepository repository = new JsonTaskRepository(filePath);
+        SystemClock clock = new SystemClock();
+        TaskService service = new TaskService(repository, clock);
+
+        TaskItem prerequisite = service.Create(new CreateTaskDto { Title = "Task A" });
+        TaskItem dependent = service.Create(new CreateTaskDto { Title = "Task B" });
+
+        service.SetDependency(dependent.Id, prerequisite.Id);
+
+        JsonTaskRepository reloadedRepository = new JsonTaskRepository(filePath);
+        TaskItem? reloadedDependent = reloadedRepository.GetById(dependent.Id);
+
+        Assert.NotNull(reloadedDependent);
+        Assert.Equal(prerequisite.Id, reloadedDependent!.DependsOnTaskId);
+        Assert.True(reloadedDependent.IsLocked);
+    }
+
+    [Fact]
+    public void SetDependency_ClearDependency_UnlocksTask()
+    {
+        string filePath = TestFileHelper.CreateEmptyTempTaskJsonPath();
+
+        JsonTaskRepository repository = new JsonTaskRepository(filePath);
+        SystemClock clock = new SystemClock();
+        TaskService service = new TaskService(repository, clock);
+
+        TaskItem prerequisite = service.Create(new CreateTaskDto { Title = "Task A" });
+        TaskItem dependent = service.Create(new CreateTaskDto
+        {
+            Title = "Task B",
+            DependsOnTaskId = prerequisite.Id
+        });
+
+        service.SetDependency(dependent.Id, null);
+
+        JsonTaskRepository reloadedRepository = new JsonTaskRepository(filePath);
+        TaskItem? reloadedDependent = reloadedRepository.GetById(dependent.Id);
+
+        Assert.NotNull(reloadedDependent);
+        Assert.Null(reloadedDependent!.DependsOnTaskId);
+        Assert.False(reloadedDependent.IsLocked);
+    }
+
+    [Fact]
+    public void SetDependency_WhenCycleWouldBeCreated_Throws()
+    {
+        string filePath = TestFileHelper.CreateEmptyTempTaskJsonPath();
+
+        JsonTaskRepository repository = new JsonTaskRepository(filePath);
+        SystemClock clock = new SystemClock();
+        TaskService service = new TaskService(repository, clock);
+
+        TaskItem taskA = service.Create(new CreateTaskDto { Title = "Task A" });
+        TaskItem taskB = service.Create(new CreateTaskDto { Title = "Task B", DependsOnTaskId = taskA.Id });
+
+        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
+            () => service.SetDependency(taskA.Id, taskB.Id));
+
+        Assert.Contains("cycle", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
 }

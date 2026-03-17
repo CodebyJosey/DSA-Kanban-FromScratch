@@ -91,6 +91,12 @@ public sealed class JsonTaskRepository : ITaskRepository
     {
         if (!_tasks.Dirty) return;
 
+        string? directoryPath = Path.GetDirectoryName(_filePath);
+        if (!string.IsNullOrWhiteSpace(directoryPath))
+        {
+            Directory.CreateDirectory(directoryPath);
+        }
+
         TaskRecord[]? records = ToRecordArray();
 
         string? json = JsonSerializer.Serialize(records, new JsonSerializerOptions
@@ -123,9 +129,14 @@ public sealed class JsonTaskRepository : ITaskRepository
                 Description = r.Description,
                 Status = r.Status,
                 Priority = r.Priority,
-                CreatedAtUtc = r.CreatedAtUtc
+                CreatedAtUtc = r.CreatedAtUtc,
+                AssignedToMemberId = r.AssignedToMemberId,
+                DependsOnTaskId = r.DependsOnTaskId,
+                IsLocked = r.IsLocked
             });
         }
+
+        RecalculateLocks();
 
         _tasks.Dirty = false;
     }
@@ -166,12 +177,34 @@ public sealed class JsonTaskRepository : ITaskRepository
                 Description = task.Description,
                 Status = task.Status,
                 Priority = task.Priority,
-                CreatedAtUtc = task.CreatedAtUtc
+                CreatedAtUtc = task.CreatedAtUtc,
+                AssignedToMemberId = task.AssignedToMemberId,
+                DependsOnTaskId = task.DependsOnTaskId,
+                IsLocked = task.IsLocked
             };
 
             index++;
         }
 
         return array;
+    }
+
+    private void RecalculateLocks()
+    {
+        IMyIterator<TaskItem> iterator = _tasks.GetIterator();
+
+        while (iterator.HasNext())
+        {
+            TaskItem task = iterator.Next();
+
+            if (!task.DependsOnTaskId.HasValue)
+            {
+                task.IsLocked = false;
+                continue;
+            }
+
+            TaskItem? prerequisite = GetById(task.DependsOnTaskId.Value);
+            task.IsLocked = prerequisite is null || prerequisite.Status != Enums.TaskStatus.Done;
+        }
     }
 }

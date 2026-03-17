@@ -32,4 +32,32 @@ public interface ITaskService
     /// Deletes a task.
     /// </summary>
     bool Delete(int id);
+
+    /// <summary>
+    /// Updates a task if the acting member has rights.
+    /// </summary>
+    void Update(int id, UpdateTaskDto dto, int actingMemberId);
+
+    /// <summary>
+    /// Moves a task status if the acting member has rights.
+    /// </summary>
+    void MoveStatus(int id, Enums.TaskStatus status, int actingMemberId);
+
+    /// <summary>Deletes a task if the acting member has rights.</summary>
+    bool Delete(int id, int actingMemberId);
+
+    /// <summary>
+    /// Assigns or unassigns a task to a team member.
+    /// </summary>
+    void Assign(AssignTaskDto dto);
+
+    /// <summary>
+    /// Sets or clears a task dependency.
+    /// </summary>
+    void SetDependency(int taskId, int? dependsOnTaskId);
+
+    /// <summary>
+    /// Sets or clears a task dependency if the acting member has rights.
+    /// </summary>
+    void SetDependency(int taskId, int? dependsOnTaskId, int actingMemberId);
 }

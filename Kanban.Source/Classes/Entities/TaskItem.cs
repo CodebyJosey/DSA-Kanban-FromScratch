@@ -31,6 +31,23 @@ public sealed class TaskItem
     public Enums.TaskPriority Priority { get; set; }
 
     /// <summary>
+    /// Gets or sets the team member id this task is assigned to.
+    /// If <c>null</c>, the task is unassigned.
+    /// </summary>
+    public int? AssignedToMemberId { get; set; }
+
+    /// <summary>
+    /// Optional prerequisite task id that must be completed first.
+    /// If <c>null</c>, this task has no dependency.
+    /// </summary>
+    public int? DependsOnTaskId { get; set; }
+
+    /// <summary>
+    /// Indicates whether this task is currently locked by an unfinished dependency.
+    /// </summary>
+    public bool IsLocked { get; set; }
+
+    /// <summary>
     /// Creation time (UTC).
     /// </summary>
     public DateTimeOffset CreatedAtUtc { get; set; }

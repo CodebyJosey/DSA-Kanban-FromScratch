@@ -17,8 +17,10 @@ public static class Program
         ITaskRepository repo = new JsonTaskRepository("Kanban.Source/Data/tasks.json");
         IClock clock = new SystemClock();
         ITaskService service = new TaskService(repo, clock);
+        ITeamMemberRepository memberRepo = new JsonTeamMemberRepository("Kanban.Source/Data/members.json");
+        TeamMemberService members = new TeamMemberService(memberRepo);
 
-        MainMenu? menu = new MainMenu(service);
+        MainMenu? menu = new MainMenu(service, members);
         menu.Run();
     }
 }
