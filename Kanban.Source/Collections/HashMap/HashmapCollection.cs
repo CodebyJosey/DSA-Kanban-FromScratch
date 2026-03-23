@@ -1,16 +1,16 @@
 using Kanban.Source.Interfaces;
 
-namespace Kanban.Source.Collections.Arrays;
+namespace Kanban.Source.Collections.HashMap;
 
 /// <summary>
-/// Singly linked list implementation of <see cref="IMyCollection{T}"/>.
+/// Hashmap implementation of <see cref="IMyCollection{T}"/>.
 /// This class does not rely on System.Collections.Generic.
 /// </summary>
 /// <typeparam name="TKey">Element type.</typeparam>
 /// <typeparam name="TValue">Element type.</typeparam>
-public class HashmapCollection<TKey, TValue> : IMyCollection<(TKey, TValue)>
+public class HashmapCollection<TKey, TValue> : IMyCollection<KeyValue<TKey, TValue>>
 {
-    private (TKey, TValue)[] _items = new (TKey, TValue)[0];
+    private KeyValue<TKey, TValue>[] _items = new KeyValue<TKey, TValue>[1];
     private int _count;
 
     /// <summary>
@@ -27,9 +27,9 @@ public class HashmapCollection<TKey, TValue> : IMyCollection<(TKey, TValue)>
     public bool Dirty {get; set;}
 
     /// <inheritdoc/>
-    public void Add((TKey, TValue) item)
+    public void Add( KeyValue<TKey, TValue> item)
     {
-        (TKey, TValue)[] newItems = new (TKey, TValue)[_count];
+        KeyValue<TKey, TValue>[] newItems = new  KeyValue<TKey, TValue>[_count];
         if(_count == _items.Length)
         {
             for(int i = 0; i < _items.Length; i++)
@@ -42,14 +42,14 @@ public class HashmapCollection<TKey, TValue> : IMyCollection<(TKey, TValue)>
         _count++;
     }
     /// <inheritdoc/>
-    public bool Remove((TKey, TValue) item)
+    public bool Remove(KeyValue<TKey, TValue> item)
     {
         for(int i = 0; i < _count; i++)
         {
-            if(_items[i].Item1!.Equals(item.Item2))
+            if(_items[i].Equals(item))
             {
                 Shift(i, false);
-                _items[^1] = default;
+                _items[^1] = default!;
                 _count--;
                 return true;
             }
@@ -57,22 +57,37 @@ public class HashmapCollection<TKey, TValue> : IMyCollection<(TKey, TValue)>
         return false;
     }
     /// <inheritdoc/>
-    public (TKey, TValue) FindBy<Key>(Key key, Func<(TKey, TValue), Key, bool> comparer)
+    public  KeyValue<TKey, TValue> FindBy<Key>(Key key, Func< KeyValue<TKey, TValue>, Key, bool> comparer)
     {
         for(int i = 0; i < _count; i++)
         {
             if(comparer(_items[i], key)) return _items[i];
         }
-        return default;
+        return default!;
     }
     /// <inheritdoc/>
-    public IMyCollection<(TKey, TValue)> Filter(Func<(TKey, TValue), bool> predicate) => throw new NotImplementedException();
+    public IMyCollection< KeyValue<TKey, TValue>> Filter(Func< KeyValue<TKey, TValue>, bool> predicate)
+    {
+        IMyCollection< KeyValue<TKey, TValue>> result = new HashmapCollection<TKey, TValue>();
+        for(int i = 0; i < _count; i++)
+        {
+            if(predicate(_items[i])) result.Add(_items[i]);
+        }
+        return result;
+    }
     /// <inheritdoc/>
-    public void Sort(Comparison<(TKey, TValue)> comparison) => throw new NotImplementedException();
+    public void Sort(Comparison< KeyValue<TKey, TValue>> comparison) => throw new NotImplementedException();
     /// <inheritdoc/>
-    public TResult Reduce<TResult>(TResult initial, Func<TResult, (TKey, TValue), TResult> accumulator) => throw new NotImplementedException();
+    public TResult Reduce<TResult>(TResult initial, Func<TResult,  KeyValue<TKey, TValue>, TResult> accumulator)
+    {
+        for(int i = 0; i < _count; i++)
+        {
+            accumulator(initial, _items[i]);
+        }
+        return initial;
+    }
     /// <inheritdoc/>
-    public IMyIterator<(TKey, TValue)> GetIterator() => throw new NotImplementedException();
+    public IMyIterator< KeyValue<TKey, TValue>> GetIterator() => throw new NotImplementedException();
 
     private void Shift(int i, bool right = true)
     {
@@ -89,7 +104,7 @@ public class HashmapCollection<TKey, TValue> : IMyCollection<(TKey, TValue)>
             {
                 _items[j] = _items[j-1];
             }
-            _items[i] = default;
+            _items[i] = default!;
         }
     }
 }
