@@ -87,7 +87,8 @@ public class HashmapCollection<TKey, TValue> : IMyCollection<KeyValue<TKey, TVal
         return initial;
     }
     /// <inheritdoc/>
-    public IMyIterator< KeyValue<TKey, TValue>> GetIterator() => throw new NotImplementedException();
+    public IMyIterator<KeyValue<TKey, TValue>> GetIterator() =>
+        new HashmapIterator<KeyValue<TKey, TValue>>(_items, _count);
 
     private void Shift(int i, bool right = true)
     {
