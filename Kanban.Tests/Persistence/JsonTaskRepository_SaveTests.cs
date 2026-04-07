@@ -16,7 +16,7 @@ public sealed class JsonTaskRepository_SaveTests
     public void SaveChanges_WritesFile_AndReloadPreservesTask()
     {
         string? filePath = TestFileHelper.CreateEmptyTempTaskJsonPath();
-        JsonTaskRepository? repository = new JsonTaskRepository(filePath);
+        JsonTaskRepository? repository = new JsonTaskRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
 
         repository.Add(new TaskItem
         {
@@ -31,7 +31,7 @@ public sealed class JsonTaskRepository_SaveTests
 
         Assert.True(File.Exists(filePath));
 
-        JsonTaskRepository newRepository = new JsonTaskRepository(filePath);
+        JsonTaskRepository newRepository = new JsonTaskRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
 
         Assert.Equal(1, newRepository.GetAll().Count);
         Assert.NotNull(newRepository.GetById(1));

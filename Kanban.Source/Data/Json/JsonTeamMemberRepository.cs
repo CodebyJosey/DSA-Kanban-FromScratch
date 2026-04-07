@@ -14,14 +14,6 @@ public sealed class JsonTeamMemberRepository : ITeamMemberRepository
     private readonly IMyCollectionFactory _collectionFactory;
 
     /// <summary>
-    /// Creates a new instance.
-    /// </summary>
-    public JsonTeamMemberRepository(string filePath)
-        : this(filePath, new MyCollectionFactory(Enums.CollectionImplementation.Array))
-    {
-    }
-
-    /// <summary>
     /// Creates a new instance with a collection factory.
     /// </summary>
     public JsonTeamMemberRepository(string filePath, IMyCollectionFactory collectionFactory)

@@ -17,14 +17,6 @@ public sealed class TaskService : ITaskService
     private readonly IMyCollectionFactory _collectionFactory;
 
     /// <summary>
-    /// Creates a new instance.
-    /// </summary>
-    public TaskService(ITaskRepository repository, IClock clock)
-        : this(repository, clock, new MyCollectionFactory(Enums.CollectionImplementation.Array))
-    {
-    }
-
-    /// <summary>
     /// Creates a new instance with explicit collection factory.
     /// </summary>
     public TaskService(ITaskRepository repository, IClock clock, IMyCollectionFactory collectionFactory)

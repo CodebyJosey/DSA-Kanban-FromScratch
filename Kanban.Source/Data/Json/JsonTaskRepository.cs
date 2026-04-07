@@ -15,15 +15,6 @@ public sealed class JsonTaskRepository : ITaskRepository
     private readonly IMyCollection<TaskItem> _tasks;
 
     /// <summary>
-    /// Creates a new instance.
-    /// </summary>
-    /// <param name="filePath">Path to the JSON file.</param>
-    public JsonTaskRepository(string filePath)
-        : this(filePath, new MyCollectionFactory(Enums.CollectionImplementation.Array))
-    {
-    }
-
-    /// <summary>
     /// Creates a new instance with a collection factory.
     /// </summary>
     /// <param name="filePath">Path to the JSON file.</param>
