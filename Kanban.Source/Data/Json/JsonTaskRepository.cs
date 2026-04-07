@@ -18,7 +18,7 @@ public sealed class JsonTaskRepository : ITaskRepository
     /// Creates a new instance.
     /// </summary>
     /// <param name="filePath">Path to the JSON file.</param>
-    public JsonTaskRepository(string filePath)
+    public JsonTaskRepository(string filePath, IMyCollection<TaskItem> tasks)
     {
         _filePath = filePath;
         _tasks = new ArrayCollection<TaskItem>();
