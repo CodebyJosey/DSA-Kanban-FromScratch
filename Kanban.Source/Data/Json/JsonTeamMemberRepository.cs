@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Kanban.Source.Classes.Entities;
-using Kanban.Source.Collections.Arrays;
+using Kanban.Source.Collections;
 using Kanban.Source.Interfaces;
 
 namespace Kanban.Source.Data.Json;
@@ -11,20 +11,31 @@ namespace Kanban.Source.Data.Json;
 public sealed class JsonTeamMemberRepository : ITeamMemberRepository
 {
     private readonly string _filePath;
+    private readonly IMyCollectionFactory _collectionFactory;
 
     /// <summary>
     /// Creates a new instance.
     /// </summary>
     public JsonTeamMemberRepository(string filePath)
+        : this(filePath, new MyCollectionFactory(Enums.CollectionImplementation.Array))
+    {
+    }
+
+    /// <summary>
+    /// Creates a new instance with a collection factory.
+    /// </summary>
+    public JsonTeamMemberRepository(string filePath, IMyCollectionFactory collectionFactory)
     {
         _filePath = filePath;
+        ArgumentNullException.ThrowIfNull(collectionFactory);
+        _collectionFactory = collectionFactory;
     }
 
     /// <inheritdoc />
     public IMyCollection<TeamMember> LoadAll()
     {
         // Use your own collection implementation.
-        IMyCollection<TeamMember> members = new ArrayCollection<TeamMember>();
+        IMyCollection<TeamMember> members = _collectionFactory.Create<TeamMember>();
 
         if (!File.Exists(_filePath))
         {
