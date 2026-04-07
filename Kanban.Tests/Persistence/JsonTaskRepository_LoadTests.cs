@@ -15,7 +15,7 @@ public sealed class JsonTaskRepository_LoadTests
     public void Constructor_LoadsTasksFromSeedJson()
     {
         string? filePath = TestFileHelper.CreateTempTasksJsonFromSeed();
-        JsonTaskRepository? repository = new JsonTaskRepository(filePath);
+        JsonTaskRepository? repository = new JsonTaskRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
 
         Assert.Equal(2, repository.GetAll().Count);
         Assert.NotNull(repository.GetById(1));

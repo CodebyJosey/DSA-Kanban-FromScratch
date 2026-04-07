@@ -19,7 +19,7 @@ public sealed class TeamMemberService_EndToEndTests
     {
         string filePath = TestFileHelper.CreateEmptyTempMemberJsonPath();
 
-        JsonTeamMemberRepository repository = new JsonTeamMemberRepository(filePath);
+        JsonTeamMemberRepository repository = new JsonTeamMemberRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
         TeamMemberService service = new TeamMemberService(repository);
 
         TeamMember? created = service.Create(new CreateTeamMemberDto
@@ -27,7 +27,7 @@ public sealed class TeamMemberService_EndToEndTests
             Name = "Tester"
         });
 
-        JsonTeamMemberRepository reloadedRepository = new JsonTeamMemberRepository(filePath);
+        JsonTeamMemberRepository reloadedRepository = new JsonTeamMemberRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
         TeamMemberService reloadedService = new TeamMemberService(reloadedRepository);
 
         Assert.Equal(1, reloadedService.GetAll().Count);
@@ -45,7 +45,7 @@ public sealed class TeamMemberService_EndToEndTests
     {
         string filePath = TestFileHelper.CreateEmptyTempMemberJsonPath();
 
-        JsonTeamMemberRepository repository = new JsonTeamMemberRepository(filePath);
+        JsonTeamMemberRepository repository = new JsonTeamMemberRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
         TeamMemberService service = new TeamMemberService(repository);
 
         TeamMember? member1 = service.Create(new CreateTeamMemberDto { Name = "A" });
@@ -65,7 +65,7 @@ public sealed class TeamMemberService_EndToEndTests
     {
         string filePath = TestFileHelper.CreateEmptyTempMemberJsonPath();
 
-        JsonTeamMemberRepository repository = new JsonTeamMemberRepository(filePath);
+        JsonTeamMemberRepository repository = new JsonTeamMemberRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
         TeamMemberService service = new TeamMemberService(repository);
 
         TeamMember? found = service.FindById(999);
@@ -81,13 +81,13 @@ public sealed class TeamMemberService_EndToEndTests
     {
         string filePath = TestFileHelper.CreateEmptyTempMemberJsonPath();
 
-        JsonTeamMemberRepository repository = new JsonTeamMemberRepository(filePath);
+        JsonTeamMemberRepository repository = new JsonTeamMemberRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
         TeamMemberService service = new TeamMemberService(repository);
 
         service.Create(new CreateTeamMemberDto { Name = "User1" });
         service.Create(new CreateTeamMemberDto { Name = "User2" });
 
-        JsonTeamMemberRepository reloadedRepository = new JsonTeamMemberRepository(filePath);
+        JsonTeamMemberRepository reloadedRepository = new JsonTeamMemberRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
         TeamMemberService reloadedService = new TeamMemberService(reloadedRepository);
 
         Assert.Equal(2, reloadedService.GetAll().Count);

@@ -20,9 +20,9 @@ public sealed class TaskService_EndToEndTests
     {
         string? filePath = TestFileHelper.CreateEmptyTempTaskJsonPath();
 
-        JsonTaskRepository? repository = new JsonTaskRepository(filePath);
+        JsonTaskRepository? repository = new JsonTaskRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
         SystemClock? clock = new SystemClock();
-        TaskService? service = new TaskService(repository, clock);
+        TaskService? service = new TaskService(repository, clock, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
 
         service.Create(new CreateTaskDto
         {
@@ -31,8 +31,8 @@ public sealed class TaskService_EndToEndTests
             Priority = TaskPriority.High
         });
 
-        JsonTaskRepository? newRepository = new JsonTaskRepository(filePath);
-        TaskService? newService = new TaskService(newRepository, clock);
+        JsonTaskRepository? newRepository = new JsonTaskRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
+        TaskService? newService = new TaskService(newRepository, clock, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
 
         Assert.Equal(1, newService.GetAll().Count);
         Assert.Equal("From service", newRepository.GetById(1)!.Title);
@@ -48,9 +48,9 @@ public sealed class TaskService_EndToEndTests
     {
         string? filePath = TestFileHelper.CreateEmptyTempTaskJsonPath();
 
-        JsonTaskRepository? repository = new JsonTaskRepository(filePath);
+        JsonTaskRepository? repository = new JsonTaskRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
         SystemClock? clock = new SystemClock();
-        TaskService? service = new TaskService(repository, clock);
+        TaskService? service = new TaskService(repository, clock, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
 
         TaskItem? created = service.Create(new CreateTaskDto
         {
@@ -59,7 +59,7 @@ public sealed class TaskService_EndToEndTests
 
         service.MoveStatus(created.Id, Source.Enums.TaskStatus.Done);
 
-        JsonTaskRepository? newRepository = new JsonTaskRepository(filePath);
+        JsonTaskRepository? newRepository = new JsonTaskRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
         TaskItem? reloaded = newRepository.GetById(created.Id);
 
         Assert.NotNull(reloaded);
@@ -74,9 +74,9 @@ public sealed class TaskService_EndToEndTests
     {
         string? filePath = TestFileHelper.CreateEmptyTempTaskJsonPath();
 
-        JsonTaskRepository? repository = new JsonTaskRepository(filePath);
+        JsonTaskRepository? repository = new JsonTaskRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
         SystemClock? clock = new SystemClock();
-        TaskService? service = new TaskService(repository, clock);
+        TaskService? service = new TaskService(repository, clock, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
 
         TaskItem? created = service.Create(new CreateTaskDto
         {
@@ -92,7 +92,7 @@ public sealed class TaskService_EndToEndTests
             Priority = TaskPriority.High
         });
 
-        JsonTaskRepository? newRepository = new JsonTaskRepository(filePath);
+        JsonTaskRepository? newRepository = new JsonTaskRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
         TaskItem? reloaded = newRepository.GetById(created.Id);
 
         Assert.NotNull(reloaded);
@@ -109,9 +109,9 @@ public sealed class TaskService_EndToEndTests
     {
         string? filePath = TestFileHelper.CreateEmptyTempTaskJsonPath();
 
-        JsonTaskRepository? repository = new JsonTaskRepository(filePath);
+        JsonTaskRepository? repository = new JsonTaskRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
         SystemClock? clock = new SystemClock();
-        TaskService? service = new TaskService(repository, clock);
+        TaskService? service = new TaskService(repository, clock, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
 
         TaskItem? created = service.Create(new CreateTaskDto
         {
@@ -122,7 +122,7 @@ public sealed class TaskService_EndToEndTests
 
         Assert.True(deleted);
 
-        JsonTaskRepository? newRepository = new JsonTaskRepository(filePath);
+        JsonTaskRepository? newRepository = new JsonTaskRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
 
         Assert.Equal(0, newRepository.GetAll().Count);
         Assert.Null(newRepository.GetById(created.Id));
@@ -133,9 +133,9 @@ public sealed class TaskService_EndToEndTests
     {
         string filePath = TestFileHelper.CreateEmptyTempTaskJsonPath();
 
-        JsonTaskRepository repository = new JsonTaskRepository(filePath);
+        JsonTaskRepository repository = new JsonTaskRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
         SystemClock clock = new SystemClock();
-        TaskService service = new TaskService(repository, clock);
+        TaskService service = new TaskService(repository, clock, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
 
         TaskItem prerequisite = service.Create(new CreateTaskDto
         {
@@ -148,7 +148,7 @@ public sealed class TaskService_EndToEndTests
             DependsOnTaskId = prerequisite.Id
         });
 
-        JsonTaskRepository reloadedRepository = new JsonTaskRepository(filePath);
+        JsonTaskRepository reloadedRepository = new JsonTaskRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
         TaskItem? reloadedDependent = reloadedRepository.GetById(dependent.Id);
 
         Assert.NotNull(reloadedDependent);
@@ -161,9 +161,9 @@ public sealed class TaskService_EndToEndTests
     {
         string filePath = TestFileHelper.CreateEmptyTempTaskJsonPath();
 
-        JsonTaskRepository repository = new JsonTaskRepository(filePath);
+        JsonTaskRepository repository = new JsonTaskRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
         SystemClock clock = new SystemClock();
-        TaskService service = new TaskService(repository, clock);
+        TaskService service = new TaskService(repository, clock, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
 
         TaskItem prerequisite = service.Create(new CreateTaskDto
         {
@@ -187,9 +187,9 @@ public sealed class TaskService_EndToEndTests
     {
         string filePath = TestFileHelper.CreateEmptyTempTaskJsonPath();
 
-        JsonTaskRepository repository = new JsonTaskRepository(filePath);
+        JsonTaskRepository repository = new JsonTaskRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
         SystemClock clock = new SystemClock();
-        TaskService service = new TaskService(repository, clock);
+        TaskService service = new TaskService(repository, clock, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
 
         TaskItem prerequisite = service.Create(new CreateTaskDto
         {
@@ -204,7 +204,7 @@ public sealed class TaskService_EndToEndTests
 
         service.MoveStatus(prerequisite.Id, Source.Enums.TaskStatus.Done);
 
-        JsonTaskRepository reloadedRepository = new JsonTaskRepository(filePath);
+        JsonTaskRepository reloadedRepository = new JsonTaskRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
         TaskItem? reloadedDependent = reloadedRepository.GetById(dependent.Id);
 
         Assert.NotNull(reloadedDependent);
@@ -216,16 +216,16 @@ public sealed class TaskService_EndToEndTests
     {
         string filePath = TestFileHelper.CreateEmptyTempTaskJsonPath();
 
-        JsonTaskRepository repository = new JsonTaskRepository(filePath);
+        JsonTaskRepository repository = new JsonTaskRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
         SystemClock clock = new SystemClock();
-        TaskService service = new TaskService(repository, clock);
+        TaskService service = new TaskService(repository, clock, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
 
         TaskItem prerequisite = service.Create(new CreateTaskDto { Title = "Task A" });
         TaskItem dependent = service.Create(new CreateTaskDto { Title = "Task B" });
 
         service.SetDependency(dependent.Id, prerequisite.Id);
 
-        JsonTaskRepository reloadedRepository = new JsonTaskRepository(filePath);
+        JsonTaskRepository reloadedRepository = new JsonTaskRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
         TaskItem? reloadedDependent = reloadedRepository.GetById(dependent.Id);
 
         Assert.NotNull(reloadedDependent);
@@ -238,9 +238,9 @@ public sealed class TaskService_EndToEndTests
     {
         string filePath = TestFileHelper.CreateEmptyTempTaskJsonPath();
 
-        JsonTaskRepository repository = new JsonTaskRepository(filePath);
+        JsonTaskRepository repository = new JsonTaskRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
         SystemClock clock = new SystemClock();
-        TaskService service = new TaskService(repository, clock);
+        TaskService service = new TaskService(repository, clock, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
 
         TaskItem prerequisite = service.Create(new CreateTaskDto { Title = "Task A" });
         TaskItem dependent = service.Create(new CreateTaskDto
@@ -251,7 +251,7 @@ public sealed class TaskService_EndToEndTests
 
         service.SetDependency(dependent.Id, null);
 
-        JsonTaskRepository reloadedRepository = new JsonTaskRepository(filePath);
+        JsonTaskRepository reloadedRepository = new JsonTaskRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
         TaskItem? reloadedDependent = reloadedRepository.GetById(dependent.Id);
 
         Assert.NotNull(reloadedDependent);
@@ -264,9 +264,9 @@ public sealed class TaskService_EndToEndTests
     {
         string filePath = TestFileHelper.CreateEmptyTempTaskJsonPath();
 
-        JsonTaskRepository repository = new JsonTaskRepository(filePath);
+        JsonTaskRepository repository = new JsonTaskRepository(filePath, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
         SystemClock clock = new SystemClock();
-        TaskService service = new TaskService(repository, clock);
+        TaskService service = new TaskService(repository, clock, new Kanban.Source.Collections.MyCollectionFactory(Kanban.Source.Enums.CollectionImplementation.Array));
 
         TaskItem taskA = service.Create(new CreateTaskDto { Title = "Task A" });
         TaskItem taskB = service.Create(new CreateTaskDto { Title = "Task B", DependsOnTaskId = taskA.Id });

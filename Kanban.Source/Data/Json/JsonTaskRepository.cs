@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Kanban.Source.Classes.Entities;
-using Kanban.Source.Collections.Arrays;
+using Kanban.Source.Collections;
 using Kanban.Source.Interfaces;
 
 namespace Kanban.Source.Data.Json;
@@ -12,16 +12,19 @@ namespace Kanban.Source.Data.Json;
 public sealed class JsonTaskRepository : ITaskRepository
 {
     private readonly string _filePath;
-    private readonly ArrayCollection<TaskItem> _tasks;
+    private readonly IMyCollection<TaskItem> _tasks;
 
     /// <summary>
-    /// Creates a new instance.
+    /// Creates a new instance with a collection factory.
     /// </summary>
     /// <param name="filePath">Path to the JSON file.</param>
-    public JsonTaskRepository(string filePath, IMyCollection<TaskItem> tasks)
+    /// <param name="collectionFactory">Factory used to create the internal collection.</param>
+    public JsonTaskRepository(string filePath, IMyCollectionFactory collectionFactory)
     {
+        ArgumentNullException.ThrowIfNull(collectionFactory);
+
         _filePath = filePath;
-        _tasks = new ArrayCollection<TaskItem>();
+        _tasks = collectionFactory.Create<TaskItem>();
         LoadFromDisk();
     }
 

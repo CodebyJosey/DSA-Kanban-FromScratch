@@ -2,7 +2,7 @@
 
 using Kanban.Source.Classes.Dtos;
 using Kanban.Source.Classes.Entities;
-using Kanban.Source.Collections.LinkedLists;
+using Kanban.Source.Collections;
 using Kanban.Source.Interfaces;
 
 namespace Kanban.Source.Services;
@@ -14,14 +14,20 @@ public sealed class TaskService : ITaskService
 {
     private readonly ITaskRepository _repo;
     private readonly IClock _clock;
+    private readonly IMyCollectionFactory _collectionFactory;
 
     /// <summary>
-    /// Creates a new instance.
+    /// Creates a new instance with explicit collection factory.
     /// </summary>
-    public TaskService(ITaskRepository repository, IClock clock)
+    public TaskService(ITaskRepository repository, IClock clock, IMyCollectionFactory collectionFactory)
     {
+        ArgumentNullException.ThrowIfNull(repository);
+        ArgumentNullException.ThrowIfNull(clock);
+        ArgumentNullException.ThrowIfNull(collectionFactory);
+
         _repo = repository;
         _clock = clock;
+        _collectionFactory = collectionFactory;
     }
 
     /// <inheritdoc/>
@@ -309,7 +315,7 @@ public sealed class TaskService : ITaskService
     private bool WouldCreateDependencyCycle(int taskId, int newDependsOnTaskId)
     {
         TaskItem? current = _repo.GetById(newDependsOnTaskId);
-        LinkedListCollection<int> visited = new LinkedListCollection<int>();
+        IMyCollection<int> visited = _collectionFactory.Create<int>();
 
         while (current != null)
         {
@@ -370,17 +376,15 @@ public sealed class TaskService : ITaskService
 
     private void UnlockDependentTasks(int completedTaskId)
     {
-        LinkedListCollection<int> queue = new LinkedListCollection<int>();
+        IMyCollection<int> queue = _collectionFactory.Create<int>();
         queue.Add(completedTaskId);
 
         while (queue.Count > 0)
         {
-            if (!queue.TryGetAt(0, out int nextCompletedTaskId))
+            if (!TryTakeFirst(queue, out int nextCompletedTaskId))
             {
                 break;
             }
-
-            queue.RemoveAt(0);
 
             IMyIterator<TaskItem> iterator = _repo.GetAll().GetIterator();
             while (iterator.HasNext())
@@ -405,5 +409,19 @@ public sealed class TaskService : ITaskService
                 }
             }
         }
+    }
+
+    private static bool TryTakeFirst(IMyCollection<int> values, out int value)
+    {
+        IMyIterator<int> iterator = values.GetIterator();
+        if (!iterator.HasNext())
+        {
+            value = default;
+            return false;
+        }
+
+        value = iterator.Next();
+        values.Remove(value);
+        return true;
     }
 }
