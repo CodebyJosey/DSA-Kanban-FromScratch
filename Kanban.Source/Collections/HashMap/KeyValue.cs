@@ -2,16 +2,21 @@ namespace Kanban.Source.Collections.HashMap;
 /// <summary>
 /// Forms keyvalue s
 /// </summary>
-public class KeyValue<TKey, TValue> : IComparable
+public class KeyValue<TKey, TValue>
 {
     /// <summary>
     /// The hashmap key
     /// </summary>
-    public TKey Key { get; set; }
+    public required TKey Key { get; set; }
     /// <summary>
     /// The hashmap value
     /// </summary>
-    public TValue Value { get; set; }
+    public required TValue Value { get; set; }
+
+    /// <summary>
+    /// Is deleted field
+    /// </summary>
+    public bool IsDeleted { get; set; }
 
     /// <summary>
     /// Constructor for the KeyValue
@@ -22,36 +27,6 @@ public class KeyValue<TKey, TValue> : IComparable
     {
         Key = key;
         Value = value;
-    }
-    /// <inheritdoc/>
-    public int CompareTo(object? obj)
-    {
-        if (obj == null) return 1;
-
-        if (obj is not KeyValue<TKey, TValue> other)
-            throw new ArgumentException("Object is not a compatible KeyValue");
-
-        if (Value is IComparable<TValue> genericComparable)
-            return genericComparable.CompareTo(other.Value);
-
-        if (Value is IComparable comparableValue)
-            return comparableValue.CompareTo(other.Value);
-
-        throw new InvalidOperationException("TValue is not comparable");
-    }
-
-    /// <inheritdoc/>
-    public override bool Equals(object? obj)
-    {
-        if (obj is not KeyValuePair<TKey, TValue> other)
-            return false;
-
-        return Equals(Key, other.Key) && Equals(Value, other.Value);
-    }
-
-    /// <inheritdoc/>
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(Key, Value);
+        IsDeleted = false;
     }
 }

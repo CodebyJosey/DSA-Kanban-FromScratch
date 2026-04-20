@@ -10,14 +10,15 @@ namespace Kanban.Source.Collections.HashMap;
 /// <typeparam name="TValue">Element type.</typeparam>
 public class HashmapCollection<TKey, TValue> : IMyCollection<KeyValue<TKey, TValue>>
 {
-    private KeyValue<TKey, TValue>[] _items = new KeyValue<TKey, TValue>[1];
+    private KeyValue<TKey, TValue>[] _items;
     private int _count;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="HashmapCollection{TKey, TValue}"/> class.
     /// </summary>
-    public HashmapCollection()
+    public HashmapCollection(int size=20)
     {
+        _items = new KeyValue<TKey, TValue>[size];
         _count = 0;
         Dirty = false;
     }
@@ -27,34 +28,40 @@ public class HashmapCollection<TKey, TValue> : IMyCollection<KeyValue<TKey, TVal
     public bool Dirty {get; set;}
 
     /// <inheritdoc/>
-    public void Add( KeyValue<TKey, TValue> item)
+    public void Add(KeyValue<TKey, TValue> item)
     {
-        KeyValue<TKey, TValue>[] newItems = new  KeyValue<TKey, TValue>[_count];
-        if(_count == _items.Length)
+        if(Count >= _items.Length) rehash(_items.Length + 10);
+
+        int hash = item.Key!.GetHashCode();
+        int index = hash % _items.Length;
+        while(true)
         {
-            for(int i = 0; i < _items.Length; i++)
+            if(_items[index] is not null)
             {
-                newItems[i] = _items[i];
+                if(_items[index].Key!.Equals(item.Key)) return;
+
+                if(_items[index].IsDeleted == false) index++;
+                else break;
             }
-            newItems[^1] = item;
+            else break;
         }
-        _items = newItems;
-        _count++;
+        _items[index] = item;
+        Dirty = true;
     }
     /// <inheritdoc/>
     public bool Remove(KeyValue<TKey, TValue> item)
     {
-        for(int i = 0; i < _count; i++)
+        int hash = item.Key!.GetHashCode();
+        int index = hash % _items.Length;
+
+        while(_items[index] != item)
         {
-            if(_items[i].Equals(item))
-            {
-                Shift(i, false);
-                _items[^1] = default!;
-                _count--;
-                return true;
-            }
+            if(index >= _items.Length || _items[index] is null) return false;
+            index++;
         }
-        return false;
+
+        _items[index].IsDeleted = true;
+        return true;
     }
     /// <inheritdoc/>
     public  KeyValue<TKey, TValue> FindBy<Key>(Key key, Func< KeyValue<TKey, TValue>, Key, bool> comparer)
@@ -90,22 +97,12 @@ public class HashmapCollection<TKey, TValue> : IMyCollection<KeyValue<TKey, TVal
     public IMyIterator<KeyValue<TKey, TValue>> GetIterator() =>
         new HashmapIterator<KeyValue<TKey, TValue>>(_items, _count);
 
-    private void Shift(int i, bool right = true)
+    private void rehash(int newSize)
     {
-        if(!right)
-        {
-            for(int j = i; j < _items.Length-1; ++j)
-            {
-                _items[j] = _items[j+1];
-            }
-        }
-        else
-        {
-            for(int j = _items.Length-1; j >= i; --j)
-            {
-                _items[j] = _items[j-1];
-            }
-            _items[i] = default!;
-        }
+        KeyValue<TKey, TValue>[] tempItems = _items;
+        _items = new KeyValue<TKey, TValue>[newSize];
+
+        for(int i = 0; i < tempItems.Length; i++)
+            if(tempItems[i] is not null || tempItems[i].IsDeleted) Add(tempItems[i]);
     }
 }
