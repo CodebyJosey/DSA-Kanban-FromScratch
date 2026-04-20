@@ -64,7 +64,7 @@ public class HashmapCollection<TKey, TValue> : IMyCollection<KeyValue<TKey, TVal
         return true;
     }
     /// <inheritdoc/>
-    public  KeyValue<TKey, TValue> FindBy<Key>(Key key, Func< KeyValue<TKey, TValue>, Key, bool> comparer)
+    public KeyValue<TKey, TValue> FindBy<Key>(Key key, Func<KeyValue<TKey, TValue>, Key, bool> comparer)
     {
         for(int i = 0; i < _count; i++)
         {
