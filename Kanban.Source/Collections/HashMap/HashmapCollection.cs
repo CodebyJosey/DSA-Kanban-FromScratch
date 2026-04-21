@@ -33,51 +33,55 @@ public class HashmapCollection<TKey, TValue> : IMyCollection<KeyValue<TKey, TVal
         if(Count >= _items.Length) rehash(_items.Length + 10);
 
         int hash = item.Key!.GetHashCode();
-        int index = hash % _items.Length;
-        while(true)
-        {
-            if(_items[index] is not null)
-            {
-                if(_items[index].Key!.Equals(item.Key)) return;
+        int index = Math.Abs(hash % _items.Length);
 
-                if(_items[index].IsDeleted == false) index++;
-                else break;
-            }
-            else break;
+        while(_items[index] is not null && !_items[index].IsDeleted)
+        {   
+            if(_items[index].Key!.Equals(item.Key)) return;
+            index = (index + 1) % _items.Length;
         }
+        
         _items[index] = item;
+        _count++;
         Dirty = true;
     }
     /// <inheritdoc/>
     public bool Remove(KeyValue<TKey, TValue> item)
     {
         int hash = item.Key!.GetHashCode();
-        int index = hash % _items.Length;
+        int index = Math.Abs(hash % _items.Length);
 
-        while(_items[index] != item)
+        while(_items[index] is not null)
         {
-            if(index >= _items.Length || _items[index] is null) return false;
-            index++;
-        }
+            if(_items[index].Key!.Equals(item.Key))
+            {
+                _items[index].IsDeleted = true;
+                _count--;
+                Dirty = true;
+                return true;
+            }
 
-        _items[index].IsDeleted = true;
-        return true;
+            index = (index + 1) % _items.Length;
+        }
+        return false;
     }
     /// <inheritdoc/>
-    public KeyValue<TKey, TValue> FindBy<Key>(Key key, Func<KeyValue<TKey, TValue>, Key, bool> comparer)
+    public KeyValue<TKey, TValue>? FindBy<Key>(Key key, Func<KeyValue<TKey, TValue>, Key, bool> comparer)
     {
-        for(int i = 0; i < _count; i++)
+        for(int i = 0; i < _items.Length; i++)
         {
+            if(_items[i] is null || _items[i].IsDeleted) continue;
             if(comparer(_items[i], key)) return _items[i];
         }
-        return default!;
+        return default;
     }
     /// <inheritdoc/>
     public IMyCollection< KeyValue<TKey, TValue>> Filter(Func< KeyValue<TKey, TValue>, bool> predicate)
     {
-        IMyCollection< KeyValue<TKey, TValue>> result = new HashmapCollection<TKey, TValue>();
-        for(int i = 0; i < _count; i++)
+        IMyCollection< KeyValue<TKey, TValue>> result = new HashmapCollection<TKey, TValue>(_items.Length);
+        for(int i = 0; i < _items.Length; i++)
         {
+            if(_items[i] is null || _items[i].IsDeleted) continue;
             if(predicate(_items[i])) result.Add(_items[i]);
         }
         return result;
@@ -87,10 +91,12 @@ public class HashmapCollection<TKey, TValue> : IMyCollection<KeyValue<TKey, TVal
     /// <inheritdoc/>
     public TResult Reduce<TResult>(TResult initial, Func<TResult,  KeyValue<TKey, TValue>, TResult> accumulator)
     {
-        for(int i = 0; i < _count; i++)
+        for(int i = 0; i < _items.Length; i++)
         {
-            accumulator(initial, _items[i]);
+            if(_items[i] is null || _items[i].IsDeleted) continue;
+            initial = accumulator(initial, _items[i]);
         }
+        
         return initial;
     }
     /// <inheritdoc/>
@@ -103,6 +109,7 @@ public class HashmapCollection<TKey, TValue> : IMyCollection<KeyValue<TKey, TVal
         _items = new KeyValue<TKey, TValue>[newSize];
 
         for(int i = 0; i < tempItems.Length; i++)
-            if(tempItems[i] is not null || tempItems[i].IsDeleted) Add(tempItems[i]);
+            if(tempItems[i] is not null && !tempItems[i].IsDeleted)
+                Add(tempItems[i]);
     }
 }
