@@ -24,7 +24,7 @@ public sealed class MyCollectionFactory : IMyCollectionFactory
     }
 
     /// <inheritdoc/>
-    public IMyCollection<T> Create<T>()
+    public IMyCollection<T>  Create<T>()
     {
         return _implementation switch
         {
