@@ -53,17 +53,37 @@ public class HashmapCollection<TKey, TValue> : IMyCollection<KeyValue<TKey, TVal
 
         while(_items[index] is not null)
         {
-            if(_items[index].Key!.Equals(item.Key))
-            {
-                _items[index].IsDeleted = true;
-                _count--;
-                Dirty = true;
-                return true;
-            }
+            if(!_items[index].IsDeleted)
+                if(_items[index].Key!.Equals(item.Key))
+                {
+                    _items[index].IsDeleted = true;
+                    _count--;
+                    Dirty = true;
+                    return true;
+                }
 
             index = (index + 1) % _items.Length;
         }
         return false;
+    }
+
+    /// <summary>
+    /// get item by key
+    /// </summary>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    public KeyValue<TKey, TValue>? Get(int key)
+    {
+        int hash = key.GetHashCode();
+        int index = Math.Abs(hash % _items.Length);
+
+        while(_items[index] is not null)
+        {
+            if(_items[index].IsDeleted)
+                if(_items[index].Key!.Equals(key))
+                    return _items[index];
+        }
+        return null;
     }
     /// <inheritdoc/>
     public KeyValue<TKey, TValue>? FindBy<Key>(Key key, Func<KeyValue<TKey, TValue>, Key, bool> comparer)

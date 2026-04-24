@@ -24,7 +24,7 @@ public sealed class MyCollectionFactory : IMyCollectionFactory
     }
 
     /// <inheritdoc/>
-    public IMyCollection<T>  Create<T>()
+    public IMyCollection<T> Create<T>()
     {
         return _implementation switch
         {
@@ -35,12 +35,7 @@ public sealed class MyCollectionFactory : IMyCollectionFactory
         };
     }
 
-    /// <summary>
-    /// returns hashmap collection
-    /// </summary>
-    /// <typeparam name="K"></typeparam>
-    /// <typeparam name="V"></typeparam>
-    /// <returns></returns>
+    /// <inheritdoc/>
     public IMyCollection<KeyValue<K, V>> CreateHashMap<K, V>() =>
         new HashmapCollection<K, V>();
 
