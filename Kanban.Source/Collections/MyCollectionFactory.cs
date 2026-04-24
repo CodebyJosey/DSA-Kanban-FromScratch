@@ -1,7 +1,7 @@
 using Kanban.Source.Classes.Entities;
 using Kanban.Source.Collections.Arrays;
 using Kanban.Source.Collections.BinarySearchTrees;
-using Kanban.Source.Collections.HashMaps;
+using Kanban.Source.Collections.HashMap;
 using Kanban.Source.Collections.LinkedLists;
 using Kanban.Source.Enums;
 using Kanban.Source.Interfaces;
@@ -31,10 +31,13 @@ public sealed class MyCollectionFactory : IMyCollectionFactory
             CollectionImplementation.Array => new ArrayCollection<T>(),
             CollectionImplementation.LinkedList => new LinkedListCollection<T>(),
             CollectionImplementation.BinarySearchTree => new BinarySearchTreeCollection<T>(BuildComparison<T>()),
-            CollectionImplementation.HashMap => new HashMapCollection<T>(),
             _ => new ArrayCollection<T>()
         };
     }
+
+    /// <inheritdoc/>
+    public IMyCollection<KeyValue<K, V>> CreateHashMap<K, V>() =>
+        new HashmapCollection<K, V>();
 
     private static Comparison<T> BuildComparison<T>()
     {
