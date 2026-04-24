@@ -19,7 +19,11 @@ public static class Program
         CollectionImplementation implementation = AskCollectionImplementation();
         IMyCollectionFactory collectionFactory = new MyCollectionFactory(implementation);
 
-        ITaskRepository repo = new JsonTaskRepository("Kanban.Source/Data/tasks.json", collectionFactory);
+        ITaskRepository repo =
+            implementation == CollectionImplementation.HashMap
+            ? new JsonTaskRepositoryHS("Kanban.Source/Data/tasks.json", collectionFactory)
+            : new JsonTaskRepository("Kanban.Source/Data/tasks.json", collectionFactory);
+            
         IClock clock = new SystemClock();
         ITaskService service = new TaskService(repo, clock, collectionFactory);
         ITeamMemberRepository memberRepo = new JsonTeamMemberRepository("Kanban.Source/Data/members.json", collectionFactory);

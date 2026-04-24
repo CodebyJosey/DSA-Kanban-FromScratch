@@ -7,11 +7,11 @@ public class KeyValue<TKey, TValue>
     /// <summary>
     /// The hashmap key
     /// </summary>
-    public required TKey Key { get; set; }
+    public TKey Key { get; set; }
     /// <summary>
     /// The hashmap value
     /// </summary>
-    public required TValue Value { get; set; }
+    public TValue Value { get; set; }
 
     /// <summary>
     /// Is deleted field

@@ -121,7 +121,7 @@ public class HashmapCollection<TKey, TValue> : IMyCollection<KeyValue<TKey, TVal
     }
     /// <inheritdoc/>
     public IMyIterator<KeyValue<TKey, TValue>> GetIterator() =>
-        new HashmapIterator<KeyValue<TKey, TValue>>(_items, _count);
+        new HashmapIterator<TKey, TValue>(_items, _count);
 
     private void rehash(int newSize)
     {
