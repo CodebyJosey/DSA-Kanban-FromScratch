@@ -5,13 +5,13 @@ namespace Kanban.Source.Collections.HashMap;
 /// <summary>
 /// Iterator implementation for hashmap-backed collections.
 /// </summary>
-/// <typeparam name="T">Element type.</typeparam>
 
-public class HashmapIterator<T> : IMyIterator<T>
+public class HashmapIterator<TKey, TValue> : IMyIterator<KeyValue<TKey, TValue>>
 {
-    private readonly T?[] _items;
+    private readonly KeyValue<TKey, TValue>?[] _items;
     private readonly int _count;
     private int _index;
+    private int _passed;
 
     /// <summary>
     /// constructor for the hashmap iterator
@@ -19,38 +19,43 @@ public class HashmapIterator<T> : IMyIterator<T>
     /// <param name="items"></param>
     /// <param name="count"></param>
     /// <exception cref="ArgumentNullException"></exception>
-    public HashmapIterator(T?[] items, int count)
+    public HashmapIterator(KeyValue<TKey, TValue>?[] items, int count)
     {
         _items = items ?? throw new ArgumentNullException(nameof(items));
         _count = count;
         _index = 0;
+        _passed = 0;
     }
 
     /// <inheritdoc/>
-    public bool HasNext()
-    {
-        while (_index < _count && _items[_index] is null)
-        {
-            _index++;
-        }
-
-        return _index < _count;
+    public bool HasNext() {
+        return _passed < _count;
     }
 
     /// <inheritdoc/>
-    public T Next()
+    public KeyValue<TKey, TValue> Next()
     {
-        if (!HasNext())
-        {
+        if (!HasNext()) 
             throw new InvalidOperationException("No more elements.");
+        
+
+        while(_index < _items.Length)
+        {
+            KeyValue<TKey, TValue>? item = _items[_index++];
+            if (item is not null && !item.IsDeleted) 
+            {
+                _passed++;
+                return item;
+            }
         }
 
-        return _items[_index++]!;
+        throw new InvalidOperationException("No more elements.");
     }
 
     /// <inheritdoc/>
     public void Reset()
     {
         _index = 0;
+        _passed = 0;
     }
 }
