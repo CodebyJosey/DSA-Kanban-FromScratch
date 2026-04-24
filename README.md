@@ -7,10 +7,10 @@ Build a To-Do / Kanban system without using System.Collections.Generic.
 All data structures are implemented from scratch.
 
 ## Implemented Data Structures
-- Generic Array
-- Generic Linked List
-- Generic Hash Map
-- Generic Binary Search Tree
+- Generic Array (made by Josey)
+- Generic Linked List (made by Jur)
+- Generic Hash Map (made by Ardy)
+- Generic Binary Search Tree (made by Josey)
 
 ## Architecture
 Clean Architecture:
